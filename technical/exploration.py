@@ -1,12 +1,11 @@
 import pandas as pd
 #from ydata_profiling import ProfileReport
 
-🧑‍🍳
-#TODO data transform before viz
-#TODO date data handling ✅ 
+#"🧑‍🍳"
+#TODO date data handling ✅
 
 #tidy data
-#TODO apply basic tidy data concept (cleansing) ✅ 
+#TODO apply basic tidy data concept (cleansing) ✅
 #TODO handle mixed data type
 '''
 mixed_type_columns = data.iloc[:, [4, 5, 12, 13]]
@@ -18,7 +17,7 @@ print(mixed_type_columns.applymap(type).nunique())
 #TODO apply some extended tidy data structure (if necessary)
 #TODO handle outliers
 #TODO data transformation https://aeturrell.github.io/coding-for-economists/data-transformation.html
-#TODO data analysis, stats work, & visualization
+#TODO data analysis, stats work (variable analysis, correlation, hypothesis testing), & visualization
 #TODO OOP
 #TODO deploy profiling to streamlit
 #TODO minireport (keep it simple)
