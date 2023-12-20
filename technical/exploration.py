@@ -1,4 +1,5 @@
 import pandas as pd
+import plotly.express as px
 #from ydata_profiling import ProfileReport
 
 #"🧑‍🍳"
@@ -17,13 +18,10 @@ print(mixed_type_columns.applymap(type).nunique())
 #TODO apply some extended tidy data structure (if necessary) (pivot/melt) 🧑‍🍳
 #TODO handle outliers
 #TODO data transformation https://aeturrell.github.io/coding-for-economists/data-transformation.html
-#TODO data analysis, stats work (variable analysis, correlation, hypothesis testing), & visualization
+#TODO data analysis, stats work (variable analysis, correlation, hypothesis testing), & visualization 🧑‍🍳
 #TODO OOP
 #TODO deploy profiling to streamlit
 #TODO minireport (keep it simple)
-
-
-
 
 
 #hypothesis
@@ -67,9 +65,6 @@ data['priceflag'] = data['priceflag'].str.replace('#', '').astype('category')
 data['pricetype'] = data['pricetype'].str.replace('#', '').astype('category')
 
 
-
-
-
 #data['priceflag'] = data['priceflag'].astype(str)
 #data_info = data.info()
 #data_duplicate= data.duplicated().sum()
@@ -87,9 +82,46 @@ data['pricetype'] = data['pricetype'].str.replace('#', '').astype('category')
 
 # tidy data
 # melt
-tidy_data_one = data.melt(id_vars=['market', 'year', 'month', 'day'], var_name='variables', value_vars=['category', 
-  'commodity', 'unit', 'priceflag', 'pricetype', 'currency', 'price'])
-print(tidy_data_one.head(20))
+tidy_data_one = data.melt(id_vars=['market', 'year', 'month', 'day', 'price'], var_name='variables', value_vars=['category', 
+  'commodity', 'unit', 'priceflag', 'pricetype', 'currency'])
+#print(tidy_data_one.head(20))
 #print(data.index)
+
+#viz
+
+# line plot 
+# price trend
+
+data_trend = data.loc[(data['market'] == 'National Average')]
+data_trend_mean = data_trend.groupby(['year', 'category'])['price'].mean().reset_index()
+#print(data_trend_mean.head(20))
+
+fig = px.line(
+    data_frame=data_trend_mean,
+    x="year",
+    y="price",
+    color="category",
+    line_dash="category",
+)
+''' 
+fig.update_layout(
+    xaxis_title="Year",
+    yaxis_title="Average Price",
+    title_text="Trend of Average Prices by Category Over the Years",
+    title_font_family="Plus Jakarta Sans",
+    title_font_size=24,
+    title_font_color="black",
+    title_font_weight="semibold",
+)
+'''
+fig.update_layout(
+    xaxis_title="Year",
+    yaxis_title="Average Price",
+    title=dict(text="Trend of Average Prices by Category Over the Years", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
+    font=dict(color="black", size=12, family="Plus Jakarta Sans")
+)
+#fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+#fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
+fig.show()
 
 
