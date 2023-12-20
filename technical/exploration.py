@@ -24,10 +24,11 @@ print(mixed_type_columns.applymap(type).nunique())
 #TODO minireport (keep it simple)
 
 
-#hypothesis
-#trends in price changes (by category over the years ✅, seasonal)
-#price Relationships between Categories
-#income and food price
+#analyses
+#trends in price changes (by category over the years) ✅
+#seasonal decomposition
+#correlation (income and food price)
+#outlier detection
 #nice-to-have for twitter thread: infrastucture and food price
 
 
@@ -93,6 +94,7 @@ tidy_data_one = data.melt(id_vars=['market', 'year', 'month', 'day', 'price'], v
 # price trend
 
 #TODO provide boxplot to present the outlier
+#TODO do hypothesis testing for the median trend
 data_trend = data.loc[(data['market'] == 'National Average')]
 data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
 data_trend_median['date'] = data_trend_median['date'].astype(str) 
@@ -125,6 +127,8 @@ fig.update_layout(
 #fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
 #fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
 fig.update_traces(mode='lines+markers')
+
+#
 
 fig.show()
 
