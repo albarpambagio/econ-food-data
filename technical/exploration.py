@@ -51,11 +51,12 @@ data = data.assign(
     data_month=data['date'].dt.month,
     data_day=data['date'].dt.day
 )
-data = data.set_index('date')
+#data = data.set_index('date')
 
 
 #data_uncluttered = data.drop(['admin1', 'admin2', 'latitude', 'longitude', 'usdprice'], axis=1, inplace=True)
 data = data.drop(['admin1', 'admin2', 'latitude', 'longitude', 'usdprice'], axis=1).copy()
+data = data.drop(data.index[0])
 
 data = data.rename(columns={'data_year': 'year', 'data_month': 'month', 'data_day': 'day'})
 
@@ -75,18 +76,20 @@ data['pricetype'] = data['pricetype'].str.replace('#', '').astype('category')
 #data_mixed = data['priceflag'].isnull().sum()
 #data_mixed_info = data['priceflag'].dtypes()
 #print(f"Number of duplicated rows: {data_duplicate}")
-data_info= data.columns
-print(data_info)
+#data_info= data.columns
+#print(data_info)
 # Clean special characters
 
 #print(data['priceflag'].unique())
 #print(data['pricetype'].unique())
+
+#print(data['currency'].unique())
 
 # tidy data
 # melt
 tidy_data_one = data.melt(id_vars=['market', 'year', 'month', 'day'], var_name='variables', value_vars=['category', 
   'commodity', 'unit', 'priceflag', 'pricetype', 'currency', 'price'])
 print(tidy_data_one.head(20))
-
+#print(data.index)
 
 
