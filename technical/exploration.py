@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.express as px
+import statsmodels.api as sm
 #from ydata_profiling import ProfileReport
 
 #"🧑‍🍳"
@@ -27,12 +28,13 @@ print(mixed_type_columns.applymap(type).nunique())
 #analyses
 #trends in price changes (by category over the years) ✅
 #seasonal decomposition
-#correlation (income and food price)
+#correlation (income and food price) 🧑‍🍳
 #outlier detection
-#nice-to-have for twitter thread: infrastucture and food price
+#nice-to-have for twitter thread: infrastucture and food price 🧑‍🍳
 
 
 csv_file_path = 'technical/data/food/wfp_food_prices_idn.csv'
+csv_file_path_two = 'technical/data/food/Jalan Tol Beroperasi di Indonesia Tahun 2015.csv'
 
 '''profiling
 profile = ProfileReport(
@@ -42,6 +44,7 @@ profile.to_file("your_report.html")
 '''
 
 data = pd.read_csv(csv_file_path, low_memory=False)
+data_two = pd.read_csv(csv_file_path_two)
 data['price'] = pd.to_numeric(data['price'], errors='coerce')
 
 data['date'] = pd.to_datetime(data['date'], errors='coerce', format='%Y-%m-%d')
@@ -128,8 +131,12 @@ fig.update_layout(
 #fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
 fig.update_traces(mode='lines+markers')
 
-#
-
-fig.show()
 
 
+#fig.show()
+
+#FOOD PRICE & TOLL DEVElOPMENT
+#print(data_two.describe())
+print(data_two.info())
+data_one_two = pd.concat([data, data_two], axis=1).sort_index()
+print(data_one_two.columns)
