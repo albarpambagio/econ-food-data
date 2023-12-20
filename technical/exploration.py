@@ -25,7 +25,7 @@ print(mixed_type_columns.applymap(type).nunique())
 
 
 #hypothesis
-#trends in price changes (weather, season, inflation)
+#trends in price changes (by category over the years ✅, seasonal)
 #price Relationships between Categories
 #income and food price
 #nice-to-have for twitter thread: infrastucture and food price
@@ -92,17 +92,20 @@ tidy_data_one = data.melt(id_vars=['market', 'year', 'month', 'day', 'price'], v
 # line plot 
 # price trend
 
+#TODO provide boxplot to present the outlier
 data_trend = data.loc[(data['market'] == 'National Average')]
-data_trend_mean = data_trend.groupby(['year', 'category'])['price'].mean().reset_index()
-#print(data_trend_mean.head(20))
+data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
+data_trend_median['date'] = data_trend_median['date'].astype(str) 
+#print(data_trend_mean.median(20))
 
 fig = px.line(
-    data_frame=data_trend_mean,
-    x="year",
+    data_frame=data_trend_median,
+    x="date",
     y="price",
     color="category",
     line_dash="category",
 )
+
 ''' 
 fig.update_layout(
     xaxis_title="Year",
@@ -115,13 +118,14 @@ fig.update_layout(
 )
 '''
 fig.update_layout(
-    xaxis_title="Year",
-    yaxis_title="Average Price",
-    title=dict(text="Trend of Average Prices by Category Over the Years", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
-    font=dict(color="black", size=12, family="Plus Jakarta Sans")
+    xaxis_title="Date",
+    yaxis_title="Median Price (in IDR)",
+    title=dict(text="Median Prices by Category Over Time", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
 )
 #fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
 #fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
+fig.update_traces(mode='lines+markers')
+
 fig.show()
 
 
