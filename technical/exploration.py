@@ -1,5 +1,7 @@
 import pandas as pd
 import plotly.express as px
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
 import statsmodels.api as sm
 #from ydata_profiling import ProfileReport
 
@@ -168,6 +170,8 @@ fig.update_traces(mode='lines+markers')
 #print(data_two.columns)
 ''' 
 
+'''
+status: not yet
 #combining the two datasets
 data_trend_median['year'] = pd.to_datetime(data_trend_median['date']).dt.year
 data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], errors='coerce').astype('Int64')
@@ -175,38 +179,46 @@ data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], error
 data_combined = pd.merge(data_trend_median, data_two, left_on='year', right_on='Tahun_Beroperasi', how='inner')
 data_combined = data_combined.drop(columns=['Tahun_Beroperasi', 'year'])
 
-#data_combined['Combined_Color'] = data_combined['Nama_Ruas'].astype(str) + '_' + data_combined['category'].astype(str)
+# Create a subplot with two rows (one for line plot, one for scatter plot)
+fig = make_subplots(rows=2, cols=1, subplot_titles=["Combined Data (Line Plot)", "Toll Data (Scatter Plot)"])
 
-# Combine 'price' with 'category'
-data_combined['Combined_Price_Category'] = data_combined['price'].astype(str) + '_' + data_combined['category'].astype(str)
-
-# Combine 'Jalan_Utama' with 'Nama_Ruas'
-data_combined['Combined_Jalan_Utama_Nama_Ruas'] = data_combined['Jalan_Utama'].astype(str) + '_' + data_combined['Nama_Ruas'].astype(str)
-
-'''
-fig = px.line(
-    data_frame=data_combined,
-    x="date",
-    y=["price", "Jalan_Utama"], 
-    color=["Nama_Ruas", "category"],
-    line_dash=["Nama_Ruas", "category"],
-)
-'''
-fig = px.line(
-    data_frame=data_combined,
-    x="date",
-    y=["Combined_Price_Category", "Combined_Jalan_Utama_Nama_Ruas"],
-    color=["Combined_Price_Category", "Combined_Jalan_Utama_Nama_Ruas"],
-    line_dash=["Combined_Price_Category", "Combined_Jalan_Utama_Nama_Ruas"],
+# Line Plot
+fig.add_trace(
+    go.Scatter(
+        x=data_combined["date"],
+        y=data_combined["price"],
+        mode="lines+markers",
+        marker=dict(size=8),
+        line=dict(color="blue", dash="solid"),
+        name="Line Plot",
+    ),
+    row=1,
+    col=1,
 )
 
+# Scatter Plot (with a custom color scale)
+color_scale = px.colors.qualitative.Set1  # You can choose a different color scale
+category_colors = data_combined["category"].astype(str).map({category: color_scale[i % len(color_scale)] for i, category in enumerate(data_combined["category"].unique())})
+fig.add_trace(
+    go.Scatter(
+        x=data_combined["date"],
+        y=data_combined["price"],
+        mode="markers",
+        marker=dict(size=8, color=category_colors),
+        name="Scatter Plot",
+    ),
+    row=2,
+    col=1,
+)
+
+# Update layout
 fig.update_layout(
     xaxis_title="Date",
-    yaxis_title="Panjang Tol (dalam km) & Harga Median Makanan",  # Update with the appropriate y-axis title
-    title=dict(text="Combined Data", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
+    title_text="Combined Data Visualization",
+    showlegend=False,
+    height=600,
 )
 
-fig.update_traces(mode='lines+markers')
-
+# Show the combined plot
 fig.show()
-print(data_combined.columns)
+'''
