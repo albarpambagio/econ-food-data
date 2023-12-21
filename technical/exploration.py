@@ -149,15 +149,35 @@ data_one_two = pd.concat([data_trend_median, data_two], axis=1).sort_index()
 data_two = data_two.reset_index(drop=True)
 data_two = data_two.drop(index=[38, 39, 40])
 
-''' 
+
 #TODO tarik regresi
-fig = px.line(
-    data_frame=data_two,
+data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], errors='coerce').astype('float64')
+data_two = data_two.sort_values(by=['Tahun_Beroperasi'])
+data_two_filtered = data_two.loc[data_two['Tahun_Beroperasi'] >= 2008]
+#print(data_two_filtered.head(5))
+
+model = sm.OLS(data_two_filtered['Jalan_Utama'], sm.add_constant(data_two_filtered['Tahun_Beroperasi'])).fit()
+print(model.summary())
+
+fig = px.scatter(
+    data_frame=data_two_filtered,
     x="Tahun_Beroperasi",
     y="Jalan_Utama",
     color="Nama_Ruas",
-    line_dash="Nama_Ruas",
 )
+
+# Add the linear regression line
+fig.add_trace(
+    go.Scatter(
+        x=data_two_filtered['Tahun_Beroperasi'],
+        y=model.predict(sm.add_constant(data_two_filtered['Tahun_Beroperasi'])),
+        mode='lines',
+        line=dict(color="black", width=2),
+        name="Linear Regression",
+    )
+)
+
+
 fig.update_layout(
     xaxis_title="Tahun Beroperasi",
     yaxis_title="Panjang Tol (dalam km)",
@@ -167,8 +187,16 @@ fig.update_layout(
 fig.update_traces(mode='lines+markers')
 
 #fig.show()
+
+
+unique_values = data_two_filtered['Tahun_Beroperasi'].unique()
+
+#print(unique_values)
+#print(data_two.dtypes)
 #print(data_two.columns)
-''' 
+
+
+
 
 '''
 status: not yet
@@ -220,5 +248,5 @@ fig.update_layout(
 )
 
 # Show the combined plot
-fig.show()
+fig.show() 
 '''
