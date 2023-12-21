@@ -44,7 +44,7 @@ profile.to_file("your_report.html")
 '''
 
 data = pd.read_csv(csv_file_path, low_memory=False)
-data_two = pd.read_csv(csv_file_path_two)
+data_two = pd.read_csv(csv_file_path_two, delimiter=';')
 data['price'] = pd.to_numeric(data['price'], errors='coerce')
 
 data['date'] = pd.to_datetime(data['date'], errors='coerce', format='%Y-%m-%d')
@@ -102,7 +102,7 @@ data_trend = data.loc[(data['market'] == 'National Average')]
 data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
 data_trend_median['date'] = data_trend_median['date'].astype(str) 
 #print(data_trend_mean.median(20))
-
+'''
 fig = px.line(
     data_frame=data_trend_median,
     x="date",
@@ -110,6 +110,7 @@ fig = px.line(
     color="category",
     line_dash="category",
 )
+'''
 
 ''' 
 fig.update_layout(
@@ -122,6 +123,8 @@ fig.update_layout(
     title_font_weight="semibold",
 )
 '''
+
+'''
 fig.update_layout(
     xaxis_title="Date",
     yaxis_title="Median Price (in IDR)",
@@ -131,12 +134,79 @@ fig.update_layout(
 #fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
 fig.update_traces(mode='lines+markers')
 
+'''
 
-
-#fig.show()
 
 #FOOD PRICE & TOLL DEVElOPMENT
 #print(data_two.describe())
-print(data_two.info())
-data_one_two = pd.concat([data, data_two], axis=1).sort_index()
-print(data_one_two.columns)
+#print(data_two.info())
+#print(data_one_two.columns)
+
+data_one_two = pd.concat([data_trend_median, data_two], axis=1).sort_index()
+
+data_two = data_two.reset_index(drop=True)
+data_two = data_two.drop(index=[38, 39, 40])
+
+''' 
+#TODO tarik regresi
+fig = px.line(
+    data_frame=data_two,
+    x="Tahun_Beroperasi",
+    y="Jalan_Utama",
+    color="Nama_Ruas",
+    line_dash="Nama_Ruas",
+)
+fig.update_layout(
+    xaxis_title="Tahun Beroperasi",
+    yaxis_title="Panjang Tol (dalam km)",
+    title=dict(text="Jalan Tol Beroperasi Tahun 1978-2015", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
+)
+
+fig.update_traces(mode='lines+markers')
+
+#fig.show()
+#print(data_two.columns)
+''' 
+
+#combining the two datasets
+data_trend_median['year'] = pd.to_datetime(data_trend_median['date']).dt.year
+data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], errors='coerce').astype('Int64')
+
+data_combined = pd.merge(data_trend_median, data_two, left_on='year', right_on='Tahun_Beroperasi', how='inner')
+data_combined = data_combined.drop(columns=['Tahun_Beroperasi', 'year'])
+
+#data_combined['Combined_Color'] = data_combined['Nama_Ruas'].astype(str) + '_' + data_combined['category'].astype(str)
+
+# Combine 'price' with 'category'
+data_combined['Combined_Price_Category'] = data_combined['price'].astype(str) + '_' + data_combined['category'].astype(str)
+
+# Combine 'Jalan_Utama' with 'Nama_Ruas'
+data_combined['Combined_Jalan_Utama_Nama_Ruas'] = data_combined['Jalan_Utama'].astype(str) + '_' + data_combined['Nama_Ruas'].astype(str)
+
+'''
+fig = px.line(
+    data_frame=data_combined,
+    x="date",
+    y=["price", "Jalan_Utama"], 
+    color=["Nama_Ruas", "category"],
+    line_dash=["Nama_Ruas", "category"],
+)
+'''
+fig = px.line(
+    data_frame=data_combined,
+    x="date",
+    y=["Combined_Price_Category", "Combined_Jalan_Utama_Nama_Ruas"],
+    color=["Combined_Price_Category", "Combined_Jalan_Utama_Nama_Ruas"],
+    line_dash=["Combined_Price_Category", "Combined_Jalan_Utama_Nama_Ruas"],
+)
+
+fig.update_layout(
+    xaxis_title="Date",
+    yaxis_title="Panjang Tol (dalam km) & Harga Median Makanan",  # Update with the appropriate y-axis title
+    title=dict(text="Combined Data", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
+)
+
+fig.update_traces(mode='lines+markers')
+
+fig.show()
+print(data_combined.columns)
