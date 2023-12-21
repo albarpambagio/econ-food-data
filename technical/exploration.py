@@ -102,19 +102,30 @@ tidy_data_one = data.melt(id_vars=['market', 'year', 'month', 'day', 'price'], v
 #TODO do hypothesis testing for the median trend
 data_trend = data.loc[(data['market'] == 'National Average')]
 data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
-data_trend_median['date'] = data_trend_median['date'].astype(str) 
-#print(data_trend_mean.median(20))
-'''
-fig = px.line(
+data_trend_median['date'] = pd.to_datetime(data_trend_median['date'])
+data_trend_median = data_trend_median.dropna(subset=['price'])
+numeric_date = pd.to_numeric(data_trend_median['date'])
+
+#print(numeric_date.dtypes)
+
+model = sm.OLS(data_trend_median['price'], sm.add_constant(numeric_date)).fit()
+#model = sm.OLS(data_two_filtered['Jalan_Utama'], sm.add_constant(data_two_filtered['Tahun_Beroperasi'])).fit()
+
+#print(data_trend_median[['price', 'date']].isnull().sum())
+#print(model.summary())
+
+# Check data types
+#print(data_trend_median[['price', 'date']].dtypes)
+
+
+fig = px.scatter(
     data_frame=data_trend_median,
-    x="date",
+    x='date',
     y="price",
     color="category",
-    line_dash="category",
+    #line_dash="category", add detail (commodity) to hover
 )
-'''
 
-''' 
 fig.update_layout(
     xaxis_title="Year",
     yaxis_title="Average Price",
@@ -122,7 +133,17 @@ fig.update_layout(
     title_font_family="Plus Jakarta Sans",
     title_font_size=24,
     title_font_color="black",
-    title_font_weight="semibold",
+)
+
+# Add the linear regression line
+fig.add_trace(
+    go.Scatter(
+        x=data_trend_median['date'],
+        y=model.predict(sm.add_constant(numeric_date)),
+        mode='lines',
+        line=dict(color="black", width=2),
+        name="Linear Regression",
+    )
 )
 '''
 
@@ -134,10 +155,10 @@ fig.update_layout(
 )
 #fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
 #fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
-fig.update_traces(mode='lines+markers')
+#fig.update_traces(mode='lines+markers')
+fig.show()
 
 '''
-
 
 #FOOD PRICE & TOLL DEVElOPMENT
 #print(data_two.describe())
@@ -181,12 +202,12 @@ fig.add_trace(
 fig.update_layout(
     xaxis_title="Tahun Beroperasi",
     yaxis_title="Panjang Tol (dalam km)",
-    title=dict(text="Jalan Tol Beroperasi Tahun 1978-2015", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
+    title=dict(text="Jalan Tol Beroperasi Tahun 2008-2015", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
 )
 
 fig.update_traces(mode='lines+markers')
 
-#fig.show()
+fig.show()
 
 
 unique_values = data_two_filtered['Tahun_Beroperasi'].unique()
@@ -194,7 +215,7 @@ unique_values = data_two_filtered['Tahun_Beroperasi'].unique()
 #print(unique_values)
 #print(data_two.dtypes)
 #print(data_two.columns)
-
+'''
 
 
 
