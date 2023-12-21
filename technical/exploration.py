@@ -3,6 +3,7 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import statsmodels.api as sm
+from scipy.stats import pearsonr
 #from ydata_profiling import ProfileReport
 
 #"🧑‍🍳"
@@ -156,7 +157,7 @@ fig.update_layout(
 #fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
 #fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
 #fig.update_traces(mode='lines+markers')
-fig.show()
+#fig.show()
 
 '''
 
@@ -271,3 +272,69 @@ fig.update_layout(
 # Show the combined plot
 fig.show() 
 '''
+
+#TODO data transform first data set, so it'll match the latter
+# take the median of each year ()
+
+#print(data_trend_median.info())
+#print(data_trend_median.columns)
+
+#data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
+data_trend_median_yearly = data_trend.groupby([data_trend['date'].dt.year, 'category'], observed=False)['price'].median().reset_index()
+data_trend_median_yearly.rename(columns={'date': 'Tahun_Beroperasi'}, inplace=True)
+data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], errors='coerce').astype('Int64')
+
+data_combined = pd.merge(data_trend_median_yearly, data_two, how='outer', on='Tahun_Beroperasi')
+data_combined = data_combined.drop(['BUJT', 'Jalan_Akses'], axis=1).copy()
+
+
+#print(data_trend_median_yearly.dtypes)
+pd.set_option('display.max_columns', None)
+#print(data_combined.head(20))
+#print(data_combined.columns)
+#data_trend_median_combine = data_trend_median.iloc
+
+#TODO filter tahun range 2007-2015
+#TODO merge catgeory into one 
+fig = px.scatter(
+    data_frame=data_combined,
+    x='Tahun_Beroperasi',
+    y=["price", 'Jalan_Utama'],
+    color="category",
+    #line_dash="category", add detail (commodity) to hover
+)
+
+'''
+fig.update_layout(
+    xaxis_title="Year",
+    yaxis_title="Average Price",
+    title_text="Trend of Average Prices by Category Yearly",
+    title_font_family="Plus Jakarta Sans",
+    title_font_size=24,
+    title_font_color="black",
+)
+'''
+fig.update_layout(
+    xaxis_title="Year of Operation",
+    yaxis_title="Values",
+    title_text="Scatter Plot of Tahun_Beroperasi, Price, and Jalan_Utama",
+    title_font_family="Plus Jakarta Sans",
+    title_font_size=24,
+    title_font_color="black",
+)
+
+
+
+'''
+fig.update_layout(
+    xaxis_title="Date",
+    yaxis_title="Median Price (in IDR)",
+    title=dict(text="Median Prices by Category Over Time", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
+)
+'''
+#fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
+#fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
+#fig.update_traces(mode='lines+markers')
+#print(data_trend_median_yearly.dtypes)
+
+#fig.show()
