@@ -33,7 +33,14 @@ print(mixed_type_columns.applymap(type).nunique())
 #seasonal decomposition
 #correlation (income and food price) 🧑‍🍳
 #outlier detection
-#nice-to-have for twitter thread: infrastucture and food price 🧑‍🍳
+#nice-to-have for twitter thread: infrastucture and food price (not yet/considered to be delayed)
+
+#objectives
+#descriptive stats (count, central tendency, variability, distribution)
+#probability analysis
+#correllation
+#hypothesis testing
+
 
 
 csv_file_path = 'technical/data/food/wfp_food_prices_idn.csv'
