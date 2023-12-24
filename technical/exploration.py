@@ -1,9 +1,11 @@
 import pandas as pd
 import plotly.express as px
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import statsmodels.api as sm
-from scipy.stats import pearsonr
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+import seaborn as sns
 #from ydata_profiling import ProfileReport
 
 #"🧑‍🍳"
@@ -112,7 +114,7 @@ model = sm.OLS(data_trend_median['price'], sm.add_constant(numeric_date)).fit()
 # Check data types
 #print(data_trend_median[['price', 'date']].dtypes)
 
-
+'''
 fig = px.scatter(
     data_frame=data_trend_median,
     x='date',
@@ -140,195 +142,98 @@ fig.add_trace(
         name="Linear Regression",
     )
 )
-'''
 
-'''
+
+
 fig.update_layout(
     xaxis_title="Date",
     yaxis_title="Median Price (in IDR)",
     title=dict(text="Median Prices by Category Over Time", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
 )
-#fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-#fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
+
 #fig.update_traces(mode='lines+markers')
 #fig.show()
-
 '''
 
-#FOOD PRICE & TOLL DEVElOPMENT
-#print(data_two.describe())
-#print(data_two.info())
-#print(data_one_two.columns)
+#descriptive stats
 
-data_one_two = pd.concat([data_trend_median, data_two], axis=1).sort_index()
+#TODO export this to latex table
+data_trend = data.loc[(data['market'] == 'National Average')]
 
-data_two = data_two.reset_index(drop=True)
-data_two = data_two.drop(index=[38, 39, 40])
+data_desc = data_trend['price'].agg([np.mean, np.std, np.median, np.max, np.min])
+data_desc_fig = px.box(data_trend, x='category', y='price', color='category')
 
+#print(pd.unique(data_trend['category']))
+#print(pd.isna(data_trend['category']).sum())
 
-#TODO tarik regresi
-data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], errors='coerce').astype('float64')
-data_two = data_two.sort_values(by=['Tahun_Beroperasi'])
-data_two_filtered = data_two.loc[data_two['Tahun_Beroperasi'] >= 2008]
-#print(data_two_filtered.head(5))
+#continuous var analysis
+#price
+#outlier detection: boxplot
+#distribution: histogram
 
-model = sm.OLS(data_two_filtered['Jalan_Utama'], sm.add_constant(data_two_filtered['Tahun_Beroperasi'])).fit()
-print(model.summary())
+#discrete var analysis
+# market's median/mean ranking
+# category analysis mean ranking
 
-fig = px.scatter(
-    data_frame=data_two_filtered,
-    x="Tahun_Beroperasi",
-    y="Jalan_Utama",
-    color="Nama_Ruas",
-)
+#correlation (price of milk and dairy & meat, fish, eggs)
+#regression ✅
 
-# Add the linear regression line
-fig.add_trace(
-    go.Scatter(
-        x=data_two_filtered['Tahun_Beroperasi'],
-        y=model.predict(sm.add_constant(data_two_filtered['Tahun_Beroperasi'])),
-        mode='lines',
-        line=dict(color="black", width=2),
-        name="Linear Regression",
-    )
-)
-
-
-fig.update_layout(
-    xaxis_title="Tahun Beroperasi",
-    yaxis_title="Panjang Tol (dalam km)",
-    title=dict(text="Jalan Tol Beroperasi Tahun 2008-2015", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
-)
-
-fig.update_traces(mode='lines+markers')
-
-fig.show()
-
-
-unique_values = data_two_filtered['Tahun_Beroperasi'].unique()
-
-#print(unique_values)
-#print(data_two.dtypes)
-#print(data_two.columns)
-'''
-
-
+data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
 
 '''
-status: not yet
-#combining the two datasets
-data_trend_median['year'] = pd.to_datetime(data_trend_median['date']).dt.year
-data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], errors='coerce').astype('Int64')
-
-data_combined = pd.merge(data_trend_median, data_two, left_on='year', right_on='Tahun_Beroperasi', how='inner')
-data_combined = data_combined.drop(columns=['Tahun_Beroperasi', 'year'])
-
-# Create a subplot with two rows (one for line plot, one for scatter plot)
-fig = make_subplots(rows=2, cols=1, subplot_titles=["Combined Data (Line Plot)", "Toll Data (Scatter Plot)"])
-
-# Line Plot
-fig.add_trace(
-    go.Scatter(
-        x=data_combined["date"],
-        y=data_combined["price"],
-        mode="lines+markers",
-        marker=dict(size=8),
-        line=dict(color="blue", dash="solid"),
-        name="Line Plot",
-    ),
-    row=1,
-    col=1,
-)
-
-# Scatter Plot (with a custom color scale)
-color_scale = px.colors.qualitative.Set1  # You can choose a different color scale
-category_colors = data_combined["category"].astype(str).map({category: color_scale[i % len(color_scale)] for i, category in enumerate(data_combined["category"].unique())})
-fig.add_trace(
-    go.Scatter(
-        x=data_combined["date"],
-        y=data_combined["price"],
-        mode="markers",
-        marker=dict(size=8, color=category_colors),
-        name="Scatter Plot",
-    ),
-    row=2,
-    col=1,
-)
-
-# Update layout
-fig.update_layout(
-    xaxis_title="Date",
-    title_text="Combined Data Visualization",
-    showlegend=False,
-    height=600,
-)
-
-# Show the combined plot
-fig.show() 
+# Create a Q-Q plot
+stats.probplot(data_trend['price'], dist="norm", plot=plt)
+plt.title('Q-Q Plot - Normality Check for Price')
+#plt.show()
 '''
 
-#TODO data transform first data set, so it'll match the latter
-# take the median of each year ()
+#spearman
+#subset_data = data_trend[data_trend['category'].isin(['meat, fish, and eggs', 'milk and dairy'])]
 
-#print(data_trend_median.info())
-#print(data_trend_median.columns)
-
-#data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
-data_trend_median_yearly = data_trend.groupby([data_trend['date'].dt.year, 'category'], observed=False)['price'].median().reset_index()
-data_trend_median_yearly.rename(columns={'date': 'Tahun_Beroperasi'}, inplace=True)
-data_two['Tahun_Beroperasi'] = pd.to_numeric(data_two['Tahun_Beroperasi'], errors='coerce').astype('Int64')
-
-data_combined = pd.merge(data_trend_median_yearly, data_two, how='outer', on='Tahun_Beroperasi')
-data_combined = data_combined.drop(['BUJT', 'Jalan_Akses'], axis=1).copy()
-
-
-#print(data_trend_median_yearly.dtypes)
-pd.set_option('display.max_columns', None)
-#print(data_combined.head(20))
-#print(data_combined.columns)
-#data_trend_median_combine = data_trend_median.iloc
-
-#TODO filter tahun range 2007-2015
-#TODO merge catgeory into one 
-fig = px.scatter(
-    data_frame=data_combined,
-    x='Tahun_Beroperasi',
-    y=["price", 'Jalan_Utama'],
-    color="category",
-    #line_dash="category", add detail (commodity) to hover
-)
-
+# Calculate correlation
 '''
-fig.update_layout(
-    xaxis_title="Year",
-    yaxis_title="Average Price",
-    title_text="Trend of Average Prices by Category Yearly",
-    title_font_family="Plus Jakarta Sans",
-    title_font_size=24,
-    title_font_color="black",
-)
+data_trend_reset = data_trend.reset_index(drop=True)
+subset_data_one = data_trend_reset.loc[(data_trend['market'] == 'National Average') & (data_trend['category'] == 'meat, fish, and eggs')]
+subset_data_two = data_trend_reset.loc[(data_trend['market'] == 'National Average') & (data_trend['category'] == 'milk and dairy')]
 '''
-fig.update_layout(
-    xaxis_title="Year of Operation",
-    yaxis_title="Values",
-    title_text="Scatter Plot of Tahun_Beroperasi, Price, and Jalan_Utama",
-    title_font_family="Plus Jakarta Sans",
-    title_font_size=24,
-    title_font_color="black",
-)
+
+data_trend_reset = data_trend.reset_index(drop=True)
+subset_data_one = data_trend_reset.loc[(data_trend_reset['category'] == 'vegetables and fruits')]
+subset_data_two = data_trend_reset.loc[(data_trend_reset['category'] == 'milk and dairy')]
+
+# Check for unique values to identify variability
+unique_values_one = subset_data_one['price'].unique()
+unique_values_two = subset_data_two['price'].unique()
+
+#print("Unique values in 'vegetables and fruits':", unique_values_one)
+#print("Unique values in 'milk and dairy':", unique_values_two)
+
+# Check for missing values
+missing_values_one = subset_data_one['price'].isnull().any()
+missing_values_two = subset_data_two['price'].isnull().any()
+
+#print("Missing values in 'vegetables and fruits':", missing_values_one)
+#print("Missing values in 'milk and dairy':", missing_values_two)
+
+# Data exploration
+#print("Summary statistics for 'vegetables and fruits':")
+#print(subset_data_one['price'].describe())
+
+#print("Summary statistics for 'milk and dairy':")
+#print(subset_data_two['price'].describe())
+
+#spearman_corr = data_trend.groupby('category')['price'].corr(data_trend['price'], method='spearman')
+spearman_corr = subset_data_one['price'].corr(subset_data_two['price'], method='spearman')
+print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
+
+#spearman_corr = pd.DataFrame(spearman_corr)
+corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]})
+sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
+plt.title('Spearman Correlation Matrix')
+#plt.show()
+
+# Display the correlation matrix
+#print(spearman_corr)
 
 
-
-'''
-fig.update_layout(
-    xaxis_title="Date",
-    yaxis_title="Median Price (in IDR)",
-    title=dict(text="Median Prices by Category Over Time", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
-)
-'''
-#fig.update_layout(legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1))
-#fig.update_traces(mode='lines+markers', hovertemplate='%{text}', text=data_trend_mean['category'])
-#fig.update_traces(mode='lines+markers')
-#print(data_trend_median_yearly.dtypes)
-
-#fig.show()
+#hypothesis testing (price and date, price and market, category and price)
