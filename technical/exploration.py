@@ -161,6 +161,7 @@ fig.update_layout(
 data_trend = data.loc[(data['market'] == 'National Average')]
 
 data_desc = data_trend['price'].agg([np.mean, np.std, np.median, np.max, np.min])
+#print(data_desc.to_string())
 data_desc_fig = px.box(data_trend, x='category', y='price', color='category')
 
 #print(pd.unique(data_trend['category']))
@@ -168,12 +169,31 @@ data_desc_fig = px.box(data_trend, x='category', y='price', color='category')
 
 #continuous var analysis
 #price
-#outlier detection: boxplot
-#distribution: histogram
+#descriptive ✅
+#outlier detection: boxplot ✅
+#distribution: histogram ✅
+
+data_trend_histo = px.histogram(data_trend, x='price', labels={'price': 'Price'}, title='Distribution of Prices (National Average)')
+#data_trend_histo.show()
 
 #discrete var analysis
 # market's median/mean ranking
 # category analysis mean ranking
+data_trend_markets = data.loc[(data['market'] != 'National Average')]
+data_desc_markets = data_trend_markets['price'].agg([np.mean, np.std, np.median, np.max, np.min])
+#data_desc_markets_fig = px.box(data_trend_markets, x='market', y='price', color='market',
+#                               title='Descriptive Statistics of Prices in Markets (Excluding National Average)')
+#print(data_desc_markets.to_string())
+
+mask = data['market'] != 'National Average'
+top_n_markets = data[mask].groupby('market')['price'].median().sort_values(ascending=False).head(5).index
+
+data_filtered = data[data['market'].isin(top_n_markets)]
+
+data_desc_markets_fig = px.box(data_filtered, x='market', y='price', color='market',
+                               title='Descriptive Statistics of Prices in Top Markets',
+                               category_orders={'market': data['market'].unique().tolist()})
+data_desc_markets_fig.show()
 
 #correlation (price of milk and dairy & meat, fish, eggs)
 #regression ✅
