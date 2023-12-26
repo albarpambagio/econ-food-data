@@ -179,7 +179,7 @@ data_trend_histo = px.histogram(data_trend, x='price', labels={'price': 'Price'}
 
 #discrete var analysis 🧑‍🍳
 # market's median/mean ranking 🚧
-# category analysis mean ranking (with bar chart) 🧑‍🍳
+# category analysis median ranking (with bar chart) ✅
 
 '''
 #data_trend_markets = data.loc[(data['market'] != 'National Average')]
@@ -237,7 +237,7 @@ data_trend_median_bar.update_layout(
     title_font_color="black",
 )
 
-data_trend_median_bar.show()
+#data_trend_median_bar.show()
 
 #correlation (price of milk and dairy & meat, fish, eggs)
 #regression ✅
@@ -300,4 +300,4 @@ plt.title('Spearman Correlation Matrix')
 #print(spearman_corr)
 
 
-#hypothesis testing (price and date, price and market, category and price)
+#hypothesis testing (price and date, price and market, category and price) 🧑‍🍳
