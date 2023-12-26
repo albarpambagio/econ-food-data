@@ -159,6 +159,7 @@ data_trend_median_scatter.update_layout(
 
 #TODO export this to latex table
 data_trend = data.loc[(data['market'] == 'National Average')]
+data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
 
 data_desc = data_trend['price'].agg([np.mean, np.std, np.median, np.max, np.min])
 #print(data_desc.to_string())
@@ -185,7 +186,8 @@ data_trend_histo = px.histogram(data_trend, x='price', labels={'price': 'Price'}
 data_trend_markets = data.drop(data[data['market'] == 'National Average'].index)
 print(pd.unique(data_trend_markets['market']))
 
-# it's possible that there might be an issue with Plotly Express expecting all unique values to be present in the column. 
+# it's possible that there might be an issue with Plotly Express expecting all unique values to be present in the column.
+# (solved) use mask instead, see the example below 
 #todo continue to limit data based on median
 
 data_desc_markets = data_trend_markets['price'].agg([np.mean, np.std, np.median, np.max, np.min])
@@ -197,25 +199,39 @@ data_desc_markets_fig = px.box(data_trend_markets, x='market', y='price', color=
 
 # category/commodity analysis
 data_trend_median_category = data_trend.groupby(['category', 'commodity'], observed=False)['price'].median().reset_index()
+data_trend_median_category = data_trend_median_category.dropna(subset=['price'])
+data_trend_median_category['commodity'] = data_trend_median_category['commodity'].str.replace("'", "")
+data_trend_median_category_sorted = data_trend_median_category.sort_values(by='price', ascending=False)
+#data_trend_median_category_sorted = data_trend_median_category_sorted.drop([data_trend_median_category_sorted[data_trend_median_category_sorted['commodity'] == 'Fuel (kerosene)']].index)
+data_trend_median_category_sorted = data_trend_median_category_sorted[~(data_trend_median_category_sorted['commodity'] == 'Fuel (kerosene)')]
+
 #print(data_trend_median_category.columns)
-unique_commodities = pd.unique(data_trend_median_category['commodity']).tolist()
+#print(pd.isna(data_trend_median_category['commodity']).sum())
+missing_values_count = data_trend_median_category['price'].isnull().groupby(data_trend_median_category['commodity']).sum()
+#print(missing_values_count)
+#print(data_trend_median_category['commodity'].value_counts())
+
+unique_commodities = pd.unique(data_trend_median_category_sorted['commodity']).tolist()
 #print(unique_commodities)
 
 #todo apply the visual custom to other plots
+#todo eliminate non food
+#todo sort from highest
+#data_trend = data.loc[(data['market'] == 'National Average')]
 data_trend_median_bar = px.bar(
-    data_frame=data_trend_median_category,
-    x='category',
+    data_frame=data_trend_median_category_sorted,
+    x='commodity',
     y='price',
     color='commodity',
-    labels={'price': 'Median Price (IDR)', 'category': 'Category'},
-    title='Median Prices by Category',
-    color_discrete_sequence=px.colors.qualitative.Prism,
+    labels={'price': 'Median Price (IDR)', 'commodity': 'Commodity'},
+    title='Median Prices by Category Over 2007-2020',
+    color_discrete_sequence=px.colors.qualitative.Pastel,
     template='plotly_white',
 )
 
 data_trend_median_bar.update_layout(
     xaxis_title='Category',
-    yaxis_title='Median Price (IDR) Over 2007-2020',
+    yaxis_title='Median Price (IDR)',
     title_font_family="Plus Jakarta Sans",
     title_font_size=24,
     title_font_color="black",
@@ -226,7 +242,7 @@ data_trend_median_bar.show()
 #correlation (price of milk and dairy & meat, fish, eggs)
 #regression ✅
 
-data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
+#data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
 
 '''
 # Create a Q-Q plot
