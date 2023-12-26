@@ -115,7 +115,7 @@ model = sm.OLS(data_trend_median['price'], sm.add_constant(numeric_date)).fit()
 #print(data_trend_median[['price', 'date']].dtypes)
 
 '''
-fig = px.scatter(
+data_trend_median_scatter = px.scatter(
     data_frame=data_trend_median,
     x='date',
     y="price",
@@ -123,7 +123,7 @@ fig = px.scatter(
     #line_dash="category", add detail (commodity) to hover
 )
 
-fig.update_layout(
+data_trend_median_scatter.update_layout(
     xaxis_title="Year",
     yaxis_title="Average Price",
     title_text="Trend of Average Prices by Category Over the Years",
@@ -133,7 +133,7 @@ fig.update_layout(
 )
 
 # Add the linear regression line
-fig.add_trace(
+data_trend_median_scatter.add_trace(
     go.Scatter(
         x=data_trend_median['date'],
         y=model.predict(sm.add_constant(numeric_date)),
@@ -145,17 +145,17 @@ fig.add_trace(
 
 
 
-fig.update_layout(
+data_trend_median_scatter.update_layout(
     xaxis_title="Date",
     yaxis_title="Median Price (in IDR)",
     title=dict(text="Median Prices by Category Over Time", font=dict(color="black", size=24, family="Plus Jakarta Sans")),
 )
 
-#fig.update_traces(mode='lines+markers')
-#fig.show()
+#data_trend_median_scatter.update_traces(mode='lines+markers')
+#data_trend_median_scatter.show()
 '''
 
-#descriptive stats
+#descriptive stats ✅
 
 #TODO export this to latex table
 data_trend = data.loc[(data['market'] == 'National Average')]
@@ -176,24 +176,52 @@ data_desc_fig = px.box(data_trend, x='category', y='price', color='category')
 data_trend_histo = px.histogram(data_trend, x='price', labels={'price': 'Price'}, title='Distribution of Prices (National Average)')
 #data_trend_histo.show()
 
-#discrete var analysis
-# market's median/mean ranking
-# category analysis mean ranking
-data_trend_markets = data.loc[(data['market'] != 'National Average')]
+#discrete var analysis 🧑‍🍳
+# market's median/mean ranking 🚧
+# category analysis mean ranking (with bar chart) 🧑‍🍳
+
+'''
+#data_trend_markets = data.loc[(data['market'] != 'National Average')]
+data_trend_markets = data.drop(data[data['market'] == 'National Average'].index)
+print(pd.unique(data_trend_markets['market']))
+
+# it's possible that there might be an issue with Plotly Express expecting all unique values to be present in the column. 
+#todo continue to limit data based on median
+
 data_desc_markets = data_trend_markets['price'].agg([np.mean, np.std, np.median, np.max, np.min])
-#data_desc_markets_fig = px.box(data_trend_markets, x='market', y='price', color='market',
-#                               title='Descriptive Statistics of Prices in Markets (Excluding National Average)')
 #print(data_desc_markets.to_string())
+data_desc_markets_fig = px.box(data_trend_markets, x='market', y='price', color='market',
+                               title='Descriptive Statistics of Prices in Markets (Excluding National Average)')
+#data_desc_fig.show()
+'''
 
-mask = data['market'] != 'National Average'
-top_n_markets = data[mask].groupby('market')['price'].median().sort_values(ascending=False).head(5).index
+# category/commodity analysis
+data_trend_median_category = data_trend.groupby(['category', 'commodity'], observed=False)['price'].median().reset_index()
+#print(data_trend_median_category.columns)
+unique_commodities = pd.unique(data_trend_median_category['commodity']).tolist()
+#print(unique_commodities)
 
-data_filtered = data[data['market'].isin(top_n_markets)]
+#todo apply the visual custom to other plots
+data_trend_median_bar = px.bar(
+    data_frame=data_trend_median_category,
+    x='category',
+    y='price',
+    color='commodity',
+    labels={'price': 'Median Price (IDR)', 'category': 'Category'},
+    title='Median Prices by Category',
+    color_discrete_sequence=px.colors.qualitative.Prism,
+    template='plotly_white',
+)
 
-data_desc_markets_fig = px.box(data_filtered, x='market', y='price', color='market',
-                               title='Descriptive Statistics of Prices in Top Markets',
-                               category_orders={'market': data['market'].unique().tolist()})
-data_desc_markets_fig.show()
+data_trend_median_bar.update_layout(
+    xaxis_title='Category',
+    yaxis_title='Median Price (IDR) Over 2007-2020',
+    title_font_family="Plus Jakarta Sans",
+    title_font_size=24,
+    title_font_color="black",
+)
+
+data_trend_median_bar.show()
 
 #correlation (price of milk and dairy & meat, fish, eggs)
 #regression ✅
@@ -210,7 +238,7 @@ plt.title('Q-Q Plot - Normality Check for Price')
 #spearman
 #subset_data = data_trend[data_trend['category'].isin(['meat, fish, and eggs', 'milk and dairy'])]
 
-# Calculate correlation
+# Calculate correlation ✅
 '''
 data_trend_reset = data_trend.reset_index(drop=True)
 subset_data_one = data_trend_reset.loc[(data_trend['market'] == 'National Average') & (data_trend['category'] == 'meat, fish, and eggs')]
@@ -244,7 +272,7 @@ missing_values_two = subset_data_two['price'].isnull().any()
 
 #spearman_corr = data_trend.groupby('category')['price'].corr(data_trend['price'], method='spearman')
 spearman_corr = subset_data_one['price'].corr(subset_data_two['price'], method='spearman')
-print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
+#print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
 
 #spearman_corr = pd.DataFrame(spearman_corr)
 corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]})
