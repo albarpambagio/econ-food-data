@@ -27,7 +27,7 @@ print(mixed_type_columns.applymap(type).nunique())
 #TODO data analysis, stats work (variable analysis, correlation, hypothesis testing), & visualization 🧑‍🍳
 #TODO OOP
 #TODO deploy profiling to streamlit
-#TODO minireport (keep it simple)
+#TODO minireport (keep it simple) & provide notebook for this (optional)
 
 
 
@@ -301,3 +301,69 @@ plt.title('Spearman Correlation Matrix')
 
 
 #hypothesis testing (price and date, price and market, category and price) 🧑‍🍳
+unique_category = pd.unique(data_trend['category']).tolist()
+#print(unique_category)
+
+'''
+#Price Difference between between meat,fish, & eggs prices and vegetable & fruits' prices
+data_category_1 = data_trend[data_trend['category'] == 'meat, fish and eggs']['price']
+data_category_2 = data_trend[data_trend['category'] == 'vegetables and fruits']['price']
+
+# Perform a t-test assuming unequal variances
+t_stat, p_value = stats.ttest_ind(data_category_1, data_category_2, equal_var=False)
+
+# Set your significance level (alpha)
+alpha = 0.05
+
+# Check the p-value against the significance level
+# Null Hypothesis (H0): There is no significant difference in prices between meat,fish, & eggs prices and vegetable & fruits prices.
+# Alternative Hypothesis (H1): There is a significant difference in prices between meat,fish, & eggs prices and vegetable & fruits' prices.
+
+
+if p_value < alpha:
+    print(f"Reject the null hypothesis. There is a significant difference between meat,fish, & eggs prices and vegetable & fruits prices.")
+else:
+    print("Fail to reject the null hypothesis. There is no significant difference between meat,fish, & eggs prices and vegetable & fruits prices.")
+'''
+
+'''
+# Price Difference between 'cereals and tubers' prices and 'milk and dairy' prices
+data_category_3 = data_trend[data_trend['category'] == 'cereals and tubers']['price']
+data_category_4 = data_trend[data_trend['category'] == 'milk and dairy']['price']
+
+# Perform a t-test assuming unequal variances
+t_stat, p_value = stats.ttest_ind(data_category_3, data_category_4, equal_var=False)
+
+# Set your significance level (alpha)
+alpha = 0.05
+
+# Check the p-value against the significance level
+# Null Hypothesis (H0): There is no significant difference in prices between 'cereals and tubers' prices and 'milk and dairy' prices.
+# Alternative Hypothesis (H1): There is a significant difference in prices between 'cereals and tubers' prices and 'milk and dairy' prices.
+
+if p_value < alpha:
+    print(f"Reject the null hypothesis. There is a significant difference between 'cereals and tubers' prices and 'milk and dairy' prices.")
+else:
+    print("Fail to reject the null hypothesis. There is no significant difference between 'cereals and tubers' prices and 'milk and dairy' prices.")
+
+'''
+
+# Price Difference between 'oil and fats' prices and 'miscellaneous food' prices
+data_category_5 = data_trend[data_trend['category'] == 'oil and fats']['price']
+data_category_6 = data_trend[data_trend['category'] == 'miscellaneous food']['price']
+
+# Perform a t-test assuming unequal variances
+t_stat, p_value = stats.ttest_ind(data_category_5, data_category_6, equal_var=False)
+
+# Set your significance level (alpha)
+alpha = 0.05
+
+# Check the p-value against the significance level
+# Null Hypothesis (H0): There is no significant difference in prices between 'oil and fats' prices and 'miscellaneous food' prices.
+# Alternative Hypothesis (H1): There is a significant difference in prices between 'oil and fats' prices and 'miscellaneous food' prices.
+
+
+if p_value < alpha:
+    print(f"Reject the null hypothesis. There is a significant difference between 'oil and fats' prices and 'miscellaneous food' prices.")
+else:
+    print("Fail to reject the null hypothesis. There is no significant difference between 'oil and fats' prices and 'miscellaneous food' prices.")
