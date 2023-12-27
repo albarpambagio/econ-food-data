@@ -12,7 +12,9 @@ from ydata_profiling import ProfileReport
 # TODO: Add exception handling ✅
 # TODO: Handle variable names ✅
 # TODO: Handle plotly layout ✅
-#TODO debugging
+# TODO: debugging ✅
+# TODO: make modular code ✅
+# TODO check the output
 
 def load_data(csv_file_path):
     """
@@ -142,8 +144,12 @@ def analyze_price_trend(data):
     """
     
     try:
+        #TODO consider to using non median data
         data_trend = data.loc[(data['market'] == 'National Average')]
+        data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
         data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
+        data_trend_median['date'] = pd.to_datetime(data_trend_median['date'])
+        data_trend_median = data_trend_median.dropna(subset=['price'])
         numeric_date = pd.to_numeric(data_trend_median['date'])
         model = sm.OLS(data_trend_median['price'], sm.add_constant(numeric_date)).fit()
         print(data_trend_median[['price', 'date']].isnull().sum())
@@ -180,7 +186,7 @@ def analyze_price_trend(data):
             )
         )
         
-        # data_trend_median_scatter.show()
+        data_trend_median_scatter.show()
     
     except Exception as e:
         raise Exception(f"Error analyzing price trend: {str(e)}") from e
@@ -209,7 +215,7 @@ def descriptive_statistics(data):
             title_text="Distribution of Prices (National Average)",
             legend_title="Category",
         )
-        # data_desc_fig.show()
+        data_desc_fig.show()
         
         print(pd.unique(data_trend['category']))
         print(pd.isna(data_trend['category']).sum())
@@ -220,7 +226,7 @@ def descriptive_statistics(data):
             y_title="Count",
             title_text="Distribution of Prices (National Average)",
         )
-        # data_trend_histo.show()
+        data_trend_histo.show()
     except Exception as e:
         raise Exception(f"Error calculating descriptive statistics: {str(e)}") from e
 
@@ -273,7 +279,8 @@ def category_analysis(data):
             title_font_size=24,
             title_font_color="black",
         )
-        # data_trend_median_bar.show()
+        
+        data_trend_median_bar.show()
     except Exception as e:
         raise Exception(f"Error during category analysis: {str(e)}") from e
     
@@ -315,7 +322,7 @@ def correlation_analysis(data):
         corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]})
         sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
         plt.title('Spearman Correlation Matrix')
-        # plt.show()
+        plt.show()
     except Exception as e:
         raise Exception(f"Error during correlation analysis: {str(e)}") from e
 
@@ -336,7 +343,7 @@ def hypothesis_testing(data):
         data_category_1 = data[data['category'] == 'meat, fish and eggs']['price']
         data_category_2 = data[data['category'] == 'vegetables and fruits']['price']
 
-        p_value = stats.ttest_ind(data_category_1, data_category_2, equal_var=False)
+        t_stat, p_value = stats.ttest_ind(data_category_1, data_category_2, equal_var=False)
         alpha = 0.05
 
         if p_value < alpha:
@@ -347,7 +354,7 @@ def hypothesis_testing(data):
         data_category_3 = data[data['category'] == 'cereals and tubers']['price']
         data_category_4 = data[data['category'] == 'milk and dairy']['price']
 
-        p_value = stats.ttest_ind(data_category_3, data_category_4, equal_var=False)
+        t_stat, p_value = stats.ttest_ind(data_category_3, data_category_4, equal_var=False)
         alpha = 0.05
 
         if p_value < alpha:
@@ -358,7 +365,7 @@ def hypothesis_testing(data):
         data_category_5 = data[data['category'] == 'oil and fats']['price']
         data_category_6 = data[data['category'] == 'miscellaneous food']['price']
 
-        p_value = stats.ttest_ind(data_category_5, data_category_6, equal_var=False)
+        t_stat, p_value = stats.ttest_ind(data_category_5, data_category_6, equal_var=False)
         alpha = 0.05
 
         if p_value < alpha:
