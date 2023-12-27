@@ -11,7 +11,8 @@ from ydata_profiling import ProfileReport
 # TODO: Add comments and docstring ✅
 # TODO: Add exception handling ✅
 # TODO: Handle variable names ✅
-# TODO: Handle plotly layout
+# TODO: Handle plotly layout ✅
+#TODO debugging
 
 def load_data(csv_file_path):
     """
@@ -108,6 +109,28 @@ def generate_profiling_report(data):
     except Exception as e:
         raise Exception(f"Error generating profiling report: {str(e)}") from e
 
+def set_common_plotly_layout(fig, x_title, y_title, title_text, legend_title=None):
+    """
+    Set common Plotly layout options.
+
+    Parameters:
+    - fig (plotly.graph_objects.Figure): Plotly figure object.
+    - x_title (str): X-axis title.
+    - y_title (str): Y-axis title.
+    - title_text (str): Title text for the plot.
+    - legend_title (str, optional): Legend title.
+    """
+    fig.update_layout(
+        xaxis_title=x_title,
+        yaxis_title=y_title,
+        title_text=title_text,
+    )
+
+    if legend_title:
+        fig.update_layout(
+            legend=dict(title=dict(text=legend_title)),
+        )
+        
 def analyze_price_trend(data):
     """
     Analyze the price trend over time.
@@ -139,6 +162,14 @@ def analyze_price_trend(data):
             title_text="Trend of Average Prices by Category Over the Years",
         )
 
+        set_common_plotly_layout(
+            data_trend_median_scatter,
+            x_title="Date",
+            y_title="Median Price (in IDR)",
+            title_text="Median Prices by Category Over Time",
+            legend_title="Category",
+        )
+        
         data_trend_median_scatter.add_trace(
             go.Scatter(
                 x=data_trend_median['date'],
@@ -148,13 +179,7 @@ def analyze_price_trend(data):
                 name="Linear Regression",
             )
         )
-
-        data_trend_median_scatter.update_layout(
-            xaxis_title="Date",
-            yaxis_title="Median Price (in IDR)",
-            title=dict(text="Median Prices by Category Over Time"),
-        )
-
+        
         # data_trend_median_scatter.show()
     
     except Exception as e:
@@ -175,10 +200,26 @@ def descriptive_statistics(data):
         data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
         data_desc = data_trend['price'].agg([np.mean, np.std, np.median, np.max, np.min])
         print(data_desc.to_string())
+        
         data_desc_fig = px.box(data_trend, x='category', y='price', color='category')
+        set_common_plotly_layout(
+            data_desc_fig,
+            x_title="Category",
+            y_title="Price",
+            title_text="Distribution of Prices (National Average)",
+            legend_title="Category",
+        )
+        # data_desc_fig.show()
+        
         print(pd.unique(data_trend['category']))
         print(pd.isna(data_trend['category']).sum())
         data_trend_histo = px.histogram(data_trend, x='price', labels={'price': 'Price'}, title='Distribution of Prices (National Average)')
+        set_common_plotly_layout(
+            data_trend_histo,
+            x_title="Price",
+            y_title="Count",
+            title_text="Distribution of Prices (National Average)",
+        )
         # data_trend_histo.show()
     except Exception as e:
         raise Exception(f"Error calculating descriptive statistics: {str(e)}") from e
@@ -207,6 +248,7 @@ def category_analysis(data):
         print(data_trend_median_category['commodity'].value_counts())
         unique_commodities = pd.unique(data_trend_median_category_sorted['commodity']).tolist()
         print(unique_commodities)
+        
         data_trend_median_bar = px.bar(
             data_frame=data_trend_median_category_sorted,
             x='commodity',
@@ -217,9 +259,16 @@ def category_analysis(data):
             color_discrete_sequence=px.colors.qualitative.Pastel,
             template='plotly_white',
         )
+        
+        set_common_plotly_layout(
+            data_trend_median_bar,
+            x_title='Category',
+            y_title='Median Price (IDR)',
+            title_text='Median Prices by Category Over 2007-2020',
+            legend_title='Commodity',
+        )
+        
         data_trend_median_bar.update_layout(
-            xaxis_title='Category',
-            yaxis_title='Median Price (IDR)',
             title_font_family="Plus Jakarta Sans",
             title_font_size=24,
             title_font_color="black",
