@@ -8,24 +8,62 @@ import scipy.stats as stats
 import seaborn as sns
 from ydata_profiling import ProfileReport
 
-#TODO add comments and docstring
-#TODO add exception handling
-#TODO handle variable names
-#TODO handle plotly layout 
+# TODO: Add comments and docstring
+# TODO: Add exception handling
+# TODO: Handle variable names ✅
+# TODO: Handle plotly layout
 
-def load_data(CSV_FILE_PATH):
+def load_data(csv_file_path):
+    """
+    Load data from a CSV file.
+
+    Parameters:
+    - csv_file_path (str): Path to the CSV file.
+
+    Returns:
+    - pd.DataFrame: Loaded data.
+
+    Raises:
+    - FileNotFoundError: If the specified file is not found.
+    """
+    
     try:
-        data = pd.read_csv(CSV_FILE_PATH, low_memory=False)
+        data = pd.read_csv(csv_file_path, low_memory=False)
         return data
     except FileNotFoundError:
-        raise FileNotFoundError(f"File not found: {CSV_FILE_PATH}")
-    
+        raise FileNotFoundError(f"File not found: {csv_file_path}")
+
 def tidy_operations(data):
+    """
+    Perform tidy operations on the data.
+
+    This function extracts a subset of columns with mixed data types and prints the count of unique data types for each column.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+
+    Returns:
+    - pd.DataFrame: Tidied data.
+    """
+    
     mixed_type_columns = data.iloc[:, [4, 5, 12, 13]]
     print(mixed_type_columns.applymap(type).nunique())
     return data
 
 def preprocess_data(data):
+    """
+    Preprocess the data.
+
+    This function handles data cleaning tasks such as converting columns to appropriate data types, extracting date components,
+    dropping unnecessary columns, handling missing values, and updating column names.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+
+    Returns:
+    - pd.DataFrame: Preprocessed data.
+    """
+    
     data['price'] = pd.to_numeric(data['price'], errors='coerce')
     data['date'] = pd.to_datetime(data['date'], errors='coerce', format='%Y-%m-%d')
     data = data.assign(
@@ -49,10 +87,28 @@ def preprocess_data(data):
     return data
 
 def generate_profiling_report(data):
+    """
+    Generate a profiling report for the data.
+
+    This function generates a profiling report using the ydata_profiling library and saves it as an HTML file.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+    """
+    
     profile = ProfileReport(data, minimal=True, title="Profiling Report: Food Price")
     profile.to_file("your_report.html")
 
 def analyze_price_trend(data):
+    """
+    Analyze the price trend over time.
+
+    This function fits a linear regression model to analyze the trend of average prices by category over the years.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+    """
+    
     data_trend = data.loc[(data['market'] == 'National Average')]
     data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
     numeric_date = pd.to_numeric(data_trend_median['date'])
@@ -89,9 +145,18 @@ def analyze_price_trend(data):
         title=dict(text="Median Prices by Category Over Time"),
     )
 
-    #data_trend_median_scatter.show()
+    # data_trend_median_scatter.show()
 
 def descriptive_statistics(data):
+    """
+    Perform descriptive statistics on the data.
+
+    This function calculates descriptive statistics, creates a box plot, and a histogram to visualize the distribution of prices.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+    """
+    
     data_trend = data.loc[(data['market'] == 'National Average')]
     data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
     data_desc = data_trend['price'].agg([np.mean, np.std, np.median, np.max, np.min])
@@ -100,10 +165,18 @@ def descriptive_statistics(data):
     print(pd.unique(data_trend['category']))
     print(pd.isna(data_trend['category']).sum())
     data_trend_histo = px.histogram(data_trend, x='price', labels={'price': 'Price'}, title='Distribution of Prices (National Average)')
-    #data_trend_histo.show()
-
+    # data_trend_histo.show()
 
 def category_analysis(data):
+    """
+    Analyze prices by category.
+
+    This function analyzes median prices by category over a specified time range and creates a bar chart.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+    """
+    
     data_trend = data.loc[(data['market'] == 'National Average')]
     data_trend_median_category = data_trend.groupby(['category', 'commodity'], observed=False)['price'].median().reset_index()
     data_trend_median_category = data_trend_median_category.dropna(subset=['price'])
@@ -134,14 +207,25 @@ def category_analysis(data):
         title_font_size=24,
         title_font_color="black",
     )
-    #data_trend_median_bar.show()
+    # data_trend_median_bar.show()
 
 def correlation_analysis(data):
+    """
+    Perform correlation analysis.
+
+    This function performs a normality check, compares unique values, handles missing values,
+    calculates summary statistics, and calculates the Spearman correlation between two categories.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+    """
+    
     data_trend = data.loc[(data['market'] == 'National Average')]
     data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
     stats.probplot(data_trend['price'], dist="norm", plot=plt)
     plt.title('Q-Q Plot - Normality Check for Price')
     plt.show()
+    
     data_trend_reset = data_trend.reset_index(drop=True)
     subset_data_one = data_trend_reset.loc[(data_trend_reset['category'] == 'vegetables and fruits')]
     subset_data_two = data_trend_reset.loc[(data_trend_reset['category'] == 'milk and dairy')]
@@ -162,16 +246,25 @@ def correlation_analysis(data):
     corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]})
     sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
     plt.title('Spearman Correlation Matrix')
-    #plt.show()
+    # plt.show()
 
 def hypothesis_testing(data):
+    """
+    Perform hypothesis testing.
+
+    This function conducts independent t-tests to compare prices between different categories and prints the results.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+    """
+    
     unique_category = pd.unique(data['category']).tolist()
     print(unique_category)
 
     data_category_1 = data[data['category'] == 'meat, fish and eggs']['price']
     data_category_2 = data[data['category'] == 'vegetables and fruits']['price']
 
-    t_stat, p_value = stats.ttest_ind(data_category_1, data_category_2, equal_var=False)
+    p_value = stats.ttest_ind(data_category_1, data_category_2, equal_var=False)
     alpha = 0.05
 
     if p_value < alpha:
@@ -182,7 +275,7 @@ def hypothesis_testing(data):
     data_category_3 = data[data['category'] == 'cereals and tubers']['price']
     data_category_4 = data[data['category'] == 'milk and dairy']['price']
 
-    t_stat, p_value = stats.ttest_ind(data_category_3, data_category_4, equal_var=False)
+    p_value = stats.ttest_ind(data_category_3, data_category_4, equal_var=False)
     alpha = 0.05
 
     if p_value < alpha:
@@ -193,7 +286,7 @@ def hypothesis_testing(data):
     data_category_5 = data[data['category'] == 'oil and fats']['price']
     data_category_6 = data[data['category'] == 'miscellaneous food']['price']
 
-    t_stat, p_value = stats.ttest_ind(data_category_5, data_category_6, equal_var=False)
+    p_value = stats.ttest_ind(data_category_5, data_category_6, equal_var=False)
     alpha = 0.05
 
     if p_value < alpha:
