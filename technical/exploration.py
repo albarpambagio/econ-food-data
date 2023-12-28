@@ -8,29 +8,11 @@ import scipy.stats as stats
 import seaborn as sns
 from ydata_profiling import ProfileReport
 
-#"🧑‍🍳"
-#TODO date data handling ✅
 
-#tidy data
-#TODO apply basic tidy data concept (cleansing) ✅
-#TODO handle mixed data type ✅ (by set low memeory to false when importing the data)
 '''
 mixed_type_columns = data.iloc[:, [4, 5, 12, 13]]
 print(mixed_type_columns.applymap(type).nunique())
 '''
-#TODO check duplicated ✅
-#TODO add comments/docstring
-#TODO handle missing values 
-#TODO apply some extended tidy data structure (if necessary) (pivot/melt) 🧑‍🍳
-#TODO handle outliers
-#TODO data transformation https://aeturrell.github.io/coding-for-economists/data-transformation.html
-#TODO data analysis, stats work (variable analysis, correlation, hypothesis testing), & visualization 🧑‍🍳
-#TODO OOP
-#TODO deploy profiling to streamlit
-#TODO minireport (keep it simple) & provide notebook for this (optional)
-
-
-
 
 csv_file_path = 'technical/data/food/wfp_food_prices_idn.csv'
 csv_file_path_two = 'technical/data/food/Jalan Tol Beroperasi di Indonesia Tahun 2015.csv'

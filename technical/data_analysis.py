@@ -5,11 +5,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import statsmodels.api as sm
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt, mpld3
 import scipy.stats as stats
 import seaborn as sns
 from ydata_profiling import ProfileReport
 
+#TODO print some output to latex table/other formats
 
 def generate_profiling_report(data):
     """
@@ -66,6 +67,8 @@ def analyze_price_trend(data):
         data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
         data_trend_median['date'] = pd.to_datetime(data_trend_median['date'])
         data_trend_median = data_trend_median.dropna(subset=['price'])
+        data_trend_median['category'] = data_trend_median['category'].str.strip()
+        data_trend_median = data_trend_median[~(data_trend_median['category'].str.lower() == 'non-food')]
         numeric_date = pd.to_numeric(data_trend_median['date'])
         model = sm.OLS(data_trend_median['price'], sm.add_constant(numeric_date)).fit()
         print(data_trend_median[['price', 'date']].isnull().sum())
@@ -76,6 +79,7 @@ def analyze_price_trend(data):
             x='date',
             y="price",
             color="category",
+            template='plotly',
         )
 
         data_trend_median_scatter.update_layout(
@@ -102,7 +106,7 @@ def analyze_price_trend(data):
             )
         )
         
-        # data_trend_median_scatter.show()
+        data_trend_median_scatter.show()
     
     except Exception as e:
         raise Exception(f"Error analyzing price trend: {str(e)}") from e
@@ -122,8 +126,8 @@ def descriptive_statistics(data):
         data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
         data_desc = data_trend['price'].agg([np.mean, np.std, np.median, np.max, np.min])
         print(data_desc.to_string())
-        
-        data_desc_fig = px.box(data_trend, x='category', y='price', color='category')
+    
+        data_desc_fig = px.box(data_trend, x='category', y='price', color='category', template='plotly')
         set_common_plotly_layout(
             data_desc_fig,
             x_title="Category",
@@ -131,18 +135,21 @@ def descriptive_statistics(data):
             title_text="Distribution of Prices (National Average)",
             legend_title="Category",
         )
-        # data_desc_fig.show()
+        data_desc_fig.show()
         
         print(pd.unique(data_trend['category']))
         print(pd.isna(data_trend['category']).sum())
-        data_trend_histo = px.histogram(data_trend, x='price', labels={'price': 'Price'}, title='Distribution of Prices (National Average)')
+        data_trend_histo = px.histogram(data_trend, x='price', 
+                                        labels={'price': 'Price'}, 
+                                        title='Distribution of Prices (National Average)',
+                                        template='plotly')
         set_common_plotly_layout(
             data_trend_histo,
             x_title="Price",
             y_title="Count",
             title_text="Distribution of Prices (National Average)",
         )
-        # data_trend_histo.show()
+        data_trend_histo.show()
     except Exception as e:
         raise Exception(f"Error calculating descriptive statistics: {str(e)}") from e
 
@@ -179,7 +186,7 @@ def category_analysis(data):
             labels={'price': 'Median Price (IDR)', 'commodity': 'Commodity'},
             title='Median Prices by Category Over 2007-2020',
             color_discrete_sequence=px.colors.qualitative.Pastel,
-            template='plotly_white',
+            template='plotly',
         )
         
         set_common_plotly_layout(
@@ -195,7 +202,7 @@ def category_analysis(data):
             title_font_size=24,
             title_font_color="black",
         )
-        # data_trend_median_bar.show()
+        data_trend_median_bar.show()
     except Exception as e:
         raise Exception(f"Error during category analysis: {str(e)}") from e
     
@@ -215,7 +222,7 @@ def correlation_analysis(data):
         data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
         stats.probplot(data_trend['price'], dist="norm", plot=plt)
         plt.title('Q-Q Plot - Normality Check for Price')
-        plt.show()
+        mpld3.show()
         
         data_trend_reset = data_trend.reset_index(drop=True)
         subset_data_one = data_trend_reset.loc[(data_trend_reset['category'] == 'vegetables and fruits')]
@@ -234,10 +241,13 @@ def correlation_analysis(data):
         print(subset_data_two['price'].describe())
         spearman_corr = subset_data_one['price'].corr(subset_data_two['price'], method='spearman')
         print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
+        
+        
         corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]})
-        sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
+        corr_plot = sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
         plt.title('Spearman Correlation Matrix')
-        # plt.show()
+        corr_plot.figure.savefig('correlation_heatmap.png')
+        
     except Exception as e:
         raise Exception(f"Error during correlation analysis: {str(e)}") from e
 
