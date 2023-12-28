@@ -243,7 +243,7 @@ def correlation_analysis(data):
         print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
         
         
-        corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]})
+        corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]}) #the output: nan
         corr_plot = sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
         plt.title('Spearman Correlation Matrix')
         corr_plot.figure.savefig('correlation_heatmap.png')

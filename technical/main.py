@@ -1,6 +1,6 @@
 # main_script.py
 
-import pandas as pd
+from watermark import watermark
 from data_loading import load_data
 from data_operations import tidy_operations, preprocess_data
 from data_analysis import (
@@ -35,3 +35,5 @@ if __name__ == "__main__":
         hypothesis_testing(preprocessed_data)
     except Exception as e:
         print(f"An error occurred: {str(e)}")
+
+print(watermark())
