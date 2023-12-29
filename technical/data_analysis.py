@@ -8,11 +8,31 @@ import numpy as np
 import matplotlib.pyplot as plt, mpld3
 import scipy.stats as stats
 import seaborn as sns
-
+from ydata_profiling import ProfileReport
 
 #TODO print some output to latex table/other formats
 
+def generate_profiling_report(data):
+    """
+    Generate a profiling report for the data.
 
+    This function generates a profiling report using the ydata_profiling library and saves it as an HTML file.
+
+    Parameters:
+    - data (pd.DataFrame): Input data.
+    """
+    
+    try:
+        profile = ProfileReport(data, minimal=True,
+                                title="Profiling Report: Food Price",
+                                dataset= {
+                                "description":    "This profiling report was generated for Albar's Medium",
+                                "url (dataset)": "https://data.humdata.org/dataset/wfp-food-prices-for-indonesia",
+                                },
+                                )
+        profile.to_file("your_report.html")
+    except Exception as e:
+        raise Exception(f"Error generating profiling report: {str(e)}") from e
 
 def set_common_plotly_layout(fig, x_title, y_title, title_text, legend_title=None):
     """
