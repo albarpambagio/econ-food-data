@@ -291,25 +291,11 @@ def correlation_analysis(data):
         print("Missing values in 'milk and dairy':", missing_values_two)
 
         # Displaying summary statistics for each category
-        #print("Summary statistics for 'vegetables and fruits':")
-        #print(subset_data_one['price'].describe())
-        #print("Summary statistics for 'milk and dairy':")
-        #print(subset_data_two['price'].describe())
-        print("Standard deviation for 'vegetables and fruits':", subset_data_one['price'].std())
-        print("Standard deviation for 'milk and dairy':", subset_data_two['price'].std())
-        
-        # Check for non-numeric values in 'price' column
-        non_numeric_values_one = subset_data_one['price'].apply(lambda x: not pd.to_numeric(x, errors='coerce')).any()
-        non_numeric_values_two = subset_data_two['price'].apply(lambda x: not pd.to_numeric(x, errors='coerce')).any()
+        print("Summary statistics for 'vegetables and fruits':")
+        print(subset_data_one['price'].describe())
+        print("Summary statistics for 'milk and dairy':")
+        print(subset_data_two['price'].describe())
 
-        '''
-        if non_numeric_values_one or non_numeric_values_two:
-            print("There are non-numeric values in the 'price' column. Please handle or remove them.")
-        else:
-        # Calculate Spearman correlation
-            spearman_corr = subset_data_one['price'].corr(subset_data_two['price'], method='spearman')
-            print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
-        '''
         # Find the minimum length between two subsets
         min_length = min(len(subset_data_one['price']), len(subset_data_two['price']))
 
@@ -318,21 +304,24 @@ def correlation_analysis(data):
         subset_data_two_trimmed = subset_data_two['price'].iloc[:min_length]
         
         # Calculate Spearman correlation using spearmanr
-        #spearman_corr, _ = spearmanr(subset_data_one['price'], subset_data_two['price'])
         spearman_corr, _ = spearmanr(subset_data_one_trimmed, subset_data_two_trimmed)
         print(f"Spearman(r) correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
         
-        '''
-        # Calculating Spearman correlation between 'vegetables and fruits' and 'milk and dairy'
-        spearman_corr = subset_data_one['price'].corr(subset_data_two['price'], method='spearman')
-        print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
-        
-        corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]}) #the output: nan
-        corr_plot = sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
-        plt.title('Spearman Correlation Matrix')
+        #Viz for the correlation
+        # Create a DataFrame for Spearman correlation
+        corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]})
+
+        # Plot the correlation heatmap
+        corr_plot = sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1, cbar_kws={'label': 'Correlation'})
+
+        # Set labels and title
+        plt.xlabel('Vegetables and Fruits')
+        plt.ylabel('Milk and Dairy')
+        plt.title('Spearman Correlation - Vegetables and Fruits vs. Milk and Dairy')
+
+        # Save the plot as an image
         corr_plot.figure.savefig('correlation_heatmap.png')
-        '''
-        
+
     except Exception as e:
         raise Exception(f"Error during correlation analysis: {str(e)}") from e
 
@@ -350,37 +339,29 @@ def hypothesis_testing(data):
     print(unique_category)
 
     try:
-        data_category_1 = data[data['category'] == 'meat, fish and eggs']['price']
-        data_category_2 = data[data['category'] == 'vegetables and fruits']['price']
+        # Define pairs of categories for comparison
+        category_pairs = [
+            ('meat, fish and eggs', 'vegetables and fruits'),
+            ('cereals and tubers', 'milk and dairy'),
+            ('oil and fats', 'miscellaneous food')
+        ]
 
-        t_stat, p_value = stats.ttest_ind(data_category_1, data_category_2, equal_var=False)
+        # Set the significance level
         alpha = 0.05
 
-        if p_value < alpha:
-            print(f"Reject the null hypothesis. There is a significant difference between meat, fish, & eggs prices and vegetable & fruits prices.")
-        else:
-            print("Fail to reject the null hypothesis. There is no significant difference between meat, fish, & eggs prices and vegetable & fruits prices.")
+        # Perform independent t-tests for each category pair
+        for category_1, category_2 in category_pairs:
+            data_category_1 = data[data['category'] == category_1]['price']
+            data_category_2 = data[data['category'] == category_2]['price']
 
-        data_category_3 = data[data['category'] == 'cereals and tubers']['price']
-        data_category_4 = data[data['category'] == 'milk and dairy']['price']
+            t_stat, p_value = stats.ttest_ind(data_category_1, data_category_2, equal_var=False)
 
-        t_stat, p_value = stats.ttest_ind(data_category_3, data_category_4, equal_var=False)
-        alpha = 0.05
-
-        if p_value < alpha:
-            print(f"Reject the null hypothesis. There is a significant difference between 'cereals and tubers' prices and 'milk and dairy' prices.")
-        else:
-            print("Fail to reject the null hypothesis. There is no significant difference between 'cereals and tubers' prices and 'milk and dairy' prices.")
-
-        data_category_5 = data[data['category'] == 'oil and fats']['price']
-        data_category_6 = data[data['category'] == 'miscellaneous food']['price']
-
-        t_stat, p_value= stats.ttest_ind(data_category_5, data_category_6, equal_var=False)
-        alpha = 0.05
-
-        if p_value < alpha:
-            print(f"Reject the null hypothesis. There is a significant difference between 'oil and fats' prices and 'miscellaneous food' prices.")
-        else:
-            print("Fail to reject the null hypothesis. There is no significant difference between 'oil and fats' prices and 'miscellaneous food' prices.")
+            # Interpret the results and print the conclusion
+            if p_value < alpha:
+                print(f"Reject the null hypothesis. There is a significant difference between {category_1} prices and {category_2} prices.")
+            else:
+                print(f"Fail to reject the null hypothesis. There is no significant difference between {category_1} prices and {category_2} prices.")
     except Exception as e:
         raise Exception(f"Error during hypothesis testing: {str(e)}") from e
+
+
