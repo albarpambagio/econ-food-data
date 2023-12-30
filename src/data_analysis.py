@@ -7,6 +7,7 @@ import statsmodels.api as sm
 import numpy as np
 import matplotlib.pyplot as plt, mpld3
 import scipy.stats as stats
+from scipy.stats import spearmanr
 import seaborn as sns
 from ydata_profiling import ProfileReport
 
@@ -68,17 +69,37 @@ def analyze_price_trend(data):
     
     try:
         #TODO consider to using non median data
-        data_trend = data.loc[(data['market'] == 'National Average')]
+        # Filtering data for 'National Average' market
+        data_trend = data.loc[data['market'] == 'National Average']
+
+        # Converting 'price' column to numeric, handling errors with coercion
         data_trend['price'] = pd.to_numeric(data_trend['price'], errors='coerce').dropna()
+
+        # Calculating median prices by date and category
         data_trend_median = data_trend.groupby(['date', 'category'], observed=False)['price'].median().reset_index()
+
+        # Converting 'date' column to datetime
         data_trend_median['date'] = pd.to_datetime(data_trend_median['date'])
+
+        # Dropping rows with missing prices
         data_trend_median = data_trend_median.dropna(subset=['price'])
+
+        # Stripping white spaces from 'category' names
         data_trend_median['category'] = data_trend_median['category'].str.strip()
+
+        # Excluding 'Non-Food' category
         data_trend_median = data_trend_median[~(data_trend_median['category'].str.lower() == 'non-food')]
+
+        # Converting 'date' to numeric for regression analysis
         numeric_date = pd.to_numeric(data_trend_median['date'])
+
+        # Fitting a linear regression model
         model = sm.OLS(data_trend_median['price'], sm.add_constant(numeric_date)).fit()
+
+        # Checking for missing values in 'price' and displaying regression summary
         print(data_trend_median[['price', 'date']].isnull().sum())
         print(model.summary())
+
 
         data_trend_median_scatter = px.scatter(
             data_frame=data_trend_median,
@@ -170,19 +191,39 @@ def category_analysis(data):
     """
 
     try:    
-        data_trend = data.loc[(data['market'] == 'National Average')]
+        # Filtering data for 'National Average' market
+        data_trend = data.loc[data['market'] == 'National Average']
+
+        # Calculating median prices by category and commodity
         data_trend_median_category = data_trend.groupby(['category', 'commodity'], observed=False)['price'].median().reset_index()
+
+        # Dropping rows with missing prices
         data_trend_median_category = data_trend_median_category.dropna(subset=['price'])
+
+        # Cleaning commodity names by removing single quotes
         data_trend_median_category['commodity'] = data_trend_median_category['commodity'].str.replace("'", "")
+
+        # Sorting data by median prices in descending order
         data_trend_median_category_sorted = data_trend_median_category.sort_values(by='price', ascending=False)
+
+        # Excluding 'Fuel (kerosene)' from the sorted data
         data_trend_median_category_sorted = data_trend_median_category_sorted[~(data_trend_median_category_sorted['commodity'] == 'Fuel (kerosene)')]
+
+        # Displaying column names and checking for missing values
         print(data_trend_median_category.columns)
         print(pd.isna(data_trend_median_category['commodity']).sum())
+
+        # Counting missing values by commodity
         missing_values_count = data_trend_median_category['price'].isnull().groupby(data_trend_median_category['commodity']).sum()
         print(missing_values_count)
+
+        # Displaying value counts for each commodity
         print(data_trend_median_category['commodity'].value_counts())
+
+        # Extracting unique commodities
         unique_commodities = pd.unique(data_trend_median_category_sorted['commodity']).tolist()
         print(unique_commodities)
+
         
         data_trend_median_bar = px.bar(
             data_frame=data_trend_median_category_sorted,
@@ -230,29 +271,67 @@ def correlation_analysis(data):
         plt.title('Q-Q Plot - Normality Check for Price')
         mpld3.show()
         
+        # Resetting index for trend data
         data_trend_reset = data_trend.reset_index(drop=True)
-        subset_data_one = data_trend_reset.loc[(data_trend_reset['category'] == 'vegetables and fruits')]
-        subset_data_two = data_trend_reset.loc[(data_trend_reset['category'] == 'milk and dairy')]
+
+        # Extracting subsets for 'vegetables and fruits' and 'milk and dairy'
+        subset_data_one = data_trend_reset.loc[data_trend_reset['category'] == 'vegetables and fruits']
+        subset_data_two = data_trend_reset.loc[data_trend_reset['category'] == 'milk and dairy']
+
+        # Displaying unique values for each category
         unique_values_one = subset_data_one['price'].unique()
         unique_values_two = subset_data_two['price'].unique()
         print("Unique values in 'vegetables and fruits':", unique_values_one)
         print("Unique values in 'milk and dairy':", unique_values_two)
+
+        # Checking for missing values in each category
         missing_values_one = subset_data_one['price'].isnull().any()
         missing_values_two = subset_data_two['price'].isnull().any()
         print("Missing values in 'vegetables and fruits':", missing_values_one)
         print("Missing values in 'milk and dairy':", missing_values_two)
-        print("Summary statistics for 'vegetables and fruits':")
-        print(subset_data_one['price'].describe())
-        print("Summary statistics for 'milk and dairy':")
-        print(subset_data_two['price'].describe())
+
+        # Displaying summary statistics for each category
+        #print("Summary statistics for 'vegetables and fruits':")
+        #print(subset_data_one['price'].describe())
+        #print("Summary statistics for 'milk and dairy':")
+        #print(subset_data_two['price'].describe())
+        print("Standard deviation for 'vegetables and fruits':", subset_data_one['price'].std())
+        print("Standard deviation for 'milk and dairy':", subset_data_two['price'].std())
+        
+        # Check for non-numeric values in 'price' column
+        non_numeric_values_one = subset_data_one['price'].apply(lambda x: not pd.to_numeric(x, errors='coerce')).any()
+        non_numeric_values_two = subset_data_two['price'].apply(lambda x: not pd.to_numeric(x, errors='coerce')).any()
+
+        '''
+        if non_numeric_values_one or non_numeric_values_two:
+            print("There are non-numeric values in the 'price' column. Please handle or remove them.")
+        else:
+        # Calculate Spearman correlation
+            spearman_corr = subset_data_one['price'].corr(subset_data_two['price'], method='spearman')
+            print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
+        '''
+        # Find the minimum length between two subsets
+        min_length = min(len(subset_data_one['price']), len(subset_data_two['price']))
+
+        # Trim the longer subset to match the minimum length
+        subset_data_one_trimmed = subset_data_one['price'].iloc[:min_length]
+        subset_data_two_trimmed = subset_data_two['price'].iloc[:min_length]
+        
+        # Calculate Spearman correlation using spearmanr
+        #spearman_corr, _ = spearmanr(subset_data_one['price'], subset_data_two['price'])
+        spearman_corr, _ = spearmanr(subset_data_one_trimmed, subset_data_two_trimmed)
+        print(f"Spearman(r) correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
+        
+        '''
+        # Calculating Spearman correlation between 'vegetables and fruits' and 'milk and dairy'
         spearman_corr = subset_data_one['price'].corr(subset_data_two['price'], method='spearman')
         print(f"Spearman correlation between vegetables and fruits and milk and dairy: {spearman_corr}")
-        
         
         corr_df = pd.DataFrame({'Spearman Correlation': [spearman_corr]}) #the output: nan
         corr_plot = sns.heatmap(corr_df, annot=True, cmap='coolwarm', vmin=-1, vmax=1)
         plt.title('Spearman Correlation Matrix')
         corr_plot.figure.savefig('correlation_heatmap.png')
+        '''
         
     except Exception as e:
         raise Exception(f"Error during correlation analysis: {str(e)}") from e

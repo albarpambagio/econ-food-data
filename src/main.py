@@ -13,7 +13,7 @@ from data_analysis import (
 )
 
 if __name__ == "__main__":
-    CSV_FILE_PATH = 'technical/data/food/wfp_food_prices_idn.csv'
+    CSV_FILE_PATH = 'data/food/wfp_food_prices_idn.csv'
 
     try:
         data = load_data(CSV_FILE_PATH)
